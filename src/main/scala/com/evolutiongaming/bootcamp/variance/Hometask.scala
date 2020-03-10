@@ -31,7 +31,24 @@ object Hometask extends App {
     } yield new Matrix[A](data.sliding(data.size / rows, data.size / rows).map(_.toVector).toVector) {}
 
     // Exercise: implement (you can construct Matrix directly here, ignoring smart constructor)
-    implicit val comonad: Comonad[Matrix] = ???
+    implicit val comonad: Comonad[Matrix] = new Comonad[Matrix] {
+      override def extract[A](x: Matrix[A]): A = ???
+
+      override def coflatten[A](fa: Matrix[A]): Matrix[Matrix[A]] = ???
+
+      override def coflatMap[A, B](fa: Matrix[A])(f: Matrix[A] => B): Matrix[B] = {
+        val matrixOfMappedMatrix = for {
+          y <- fa.matrix.indices
+          x <- fa.matrix(0).indices
+        } yield f(new Matrix[A](fa.matrix, Focus.of(x, y).getOrElse(Focus.Zero)) {})
+        Matrix.of(matrixOfMappedMatrix, fa.matrix.length) match {
+          case Right(value) => value
+          case _ => new Matrix[B](Vector[Vector[B]]()) {}
+        }
+      }
+
+      override def map[A, B](fa: Matrix[A])(f: A => B): Matrix[B] = ???
+    }
   }
 
 
